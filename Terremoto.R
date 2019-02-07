@@ -3,6 +3,7 @@ library(data.table)
 library(dplyr)
 library(ggplot2)
 library(corrplot)
+library(caret)
 
 # Definindo o diretorio raiz
 setwd("D:/MachineLearning/Kaggle/Terremotos")
@@ -72,6 +73,9 @@ remove_out <- function(x){
 # Novo dataset sem outliers
 df_2 <- remove_out(df)
 
+# Novo resumo dos dados
+summary(df_2)
+
 # Boxplot do atributo acoustic_data dos dados tratados
 ggplot(df_2, aes(x = "", y = acoustic_data)) +
   geom_boxplot(fill = "dodgerblue") +
@@ -100,18 +104,18 @@ ggplot(df_2, aes(x = "", y = time_to_failure)) +
   ggtitle("Boxplot do atributo time_to_failure") +
   xlab("") + ylab("time_to_failure")
 
-# Analise de dispersao entre acoustic_data e time_to_failure
-ggplot(df_2, aes(x = acoustic_data, y = time_to_failure)) +
-  geom_point(color = "orange", alpha = 0.5) +
-  theme_light() +
-  ggtitle("Analise de dispersao entre acoustic_data e time_to_failure") +
-  xlab("acoustic_data") + ylab("time_to_failure")
+# Media de time_to_failure por acoustic_data
+df_2 %>% group_by(acoustic_data) %>%
+  summarise(media = mean(time_to_failure)) %>%
+  ggplot(aes(x = acoustic_data, y = media, label = round(media,1))) + 
+  geom_bar(stat="identity", fill = "dodgerblue") +
+  geom_text(vjust=2, color = "white") +
+  theme_light()
 
 # correlacao entre os dados
 correlacao = cor(df_2)
 
 # Plotando as correlacoes (sem correlacao entre as variaveis)
 corrplot(correlacao, method = "shade")
-
 
 
