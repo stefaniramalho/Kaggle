@@ -107,11 +107,14 @@ ggplot(df_2, aes(x = "", y = time_to_failure)) +
 # Media de time_to_failure por acoustic_data
 df_2 %>% group_by(acoustic_data) %>%
   summarise(media = mean(time_to_failure)) %>%
-  ggplot(aes(x = acoustic_data, y = media, label = round(media,1))) + 
+  ggplot(aes(x = acoustic_data, y = media, label = round(media,2))) + 
   geom_bar(stat="identity", fill = "dodgerblue") +
+  geom_hline(yintercept=4, linetype="dotted", color = "blue2", size=1) +
+  geom_hline(yintercept=5, linetype="dotted", color = "blue2", size=1) +
   geom_text(vjust=2, color = "white") +
-  theme_light()
-
+  theme_light() +
+  xlab("acoustic_data") + ylab("media time_to_failure") +
+  ggtitle("Media de time_to_failure por acoustic_data")
 # correlacao entre os dados
 correlacao = cor(df_2)
 
