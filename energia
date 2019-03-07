@@ -1,0 +1,104 @@
+# Modelagem Preditiva em IoT - Previsão de Uso de Energia
+
+# Este projeto de IoT tem como objetivo a criação de modelos preditivos para a previsão de consumo
+# de energia de eletrodomésticos. Os dados utilizados incluem medições de sensores de temperatura
+# e umidade de uma rede sem fio, previsão do tempo de uma estação de um aeroporto e uso de energia
+# utilizada por luminárias. 
+
+
+# Definindo o diretorio
+setwd("D:/MachineLearning/Projetos/projeto8")
+
+# Importando os modulos
+library(lubridate)
+library(randomForest)
+library(varImp)
+library(caret)
+library(e1071)
+
+
+# Coleta e tratamento dos dados
+
+# Lendo os dados de trein e teste
+dataset <- read.csv("projeto8-training.csv", stringsAsFactors = FALSE)
+
+
+# Convertendo o atributo date para o formato data e hora
+dataset$date <- ymd_hms(dataset$date)
+
+# Convertento os atrubutos dia da semapra para fator
+dataset$WeekStatus <- as.factor(dataset$WeekStatus)
+dataset$Day_of_week <- as.factor(dataset$Day_of_week)
+
+# Analise Exploratoria
+
+# Dimensao dos dados de treino e teste
+dim(dataset)
+
+# Visualizando os dados de treino
+head(dataset)
+
+# Estrutura dos dados de treino
+str(dataset)
+
+# Buscando por valores missing
+sapply(dataset, function(x){
+  sum(is.na(x))
+})
+
+# Estatistica descritiva
+summary(dataset)
+
+
+# Gerando uma copia do dataset para normalizacao
+dataset_normal = dataset[-1] #nao considerando o atributo data
+
+# Normalizando os dados (Saltando o atributo target)
+dataset_normal[-1] <- as.data.frame(lapply(dataset_normal[-1], function(x){
+  if (is.numeric(x)){
+    x <- scale(x, scale = T, center = T)}
+  return(x)}))
+
+
+# Feature Selection
+
+# Criando o modelo para avaliacao dos atributos por importancia
+modelo <- randomForest(Appliances ~.,
+                       data = dataset_normal,
+                       importance = T,
+                       ntree = 1000)
+
+# Plotando as importancias
+varImpPlot(modelo)
+
+
+#The top variables:
+#"NSM", "lights", "RH_3", "Press_mm_hg", "Day_of_week", "T3", "RH_5", "RH_1"
+
+
+# Dividindo os dados em treino e teste
+set.seed(123)
+
+trainIndex = createDataPartition(dataset_normal$Appliances, p=0.7, list=FALSE, times=1)
+
+# Criando os dados de treino e teste
+train = dataset_normal[trainIndex,]
+test = dataset_normal[-trainIndex,]
+
+# Criando a formula com os atributos selecionados
+formula = as.formula(Appliances ~ NSM +
+                       lights + RH_3 + Press_mm_hg + Day_of_week + T3 +
+                       RH_5 + RH_1)
+
+# Criando o modelo SVM
+modelo <- svm(formula,
+                  data = train,
+                  kernel = "radial",
+                  cost = 10,
+                  gama = 0.5)
+
+# Prevendo os dados de teste
+previsto <- predict(modelo, newdata  = test)
+
+# Avaliando o modelo
+postResample(previsto, test$Appliances)
