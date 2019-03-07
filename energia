@@ -66,19 +66,19 @@ dataset_normal[-1] <- as.data.frame(lapply(dataset_normal[-1], function(x){
 modelo <- randomForest(Appliances ~.,
                        data = dataset_normal,
                        importance = T,
-                       ntree = 1000)
+                       ntree = 500)
 
 # Plotando as importancias
 varImpPlot(modelo)
 
 
 #The top variables:
-#"NSM", "lights", "RH_3", "Press_mm_hg", "Day_of_week", "T3", "RH_5", "RH_1"
+#"NSM", "lights", "RH_3", "Press_mm_hg", "Day_of_week", "T3",
+#"RH_5", "RH_1", "Appliances"
 
 
 # Dividindo os dados em treino e teste
 set.seed(123)
-
 trainIndex = createDataPartition(dataset_normal$Appliances, p=0.7, list=FALSE, times=1)
 
 # Criando os dados de treino e teste
@@ -90,7 +90,7 @@ formula = as.formula(Appliances ~ NSM +
                        lights + RH_3 + Press_mm_hg + Day_of_week + T3 +
                        RH_5 + RH_1)
 
-# Criando o modelo SVM
+# modelo de regressao SVM
 modelo <- svm(formula,
                   data = train,
                   kernel = "radial",
